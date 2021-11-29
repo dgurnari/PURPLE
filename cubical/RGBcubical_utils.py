@@ -86,7 +86,7 @@ def prune_contributions(contributions):
 
 def difference_RGB_ECP(ecp_1, ecp_2, return_contributions = False):
     fmin = 0
-    fmax = 255
+    fmax = 257
     
     contributions = [((fmin, fmin, fmin), 0),
                      ((fmax, fmax, fmax), 0)]
@@ -95,24 +95,45 @@ def difference_RGB_ECP(ecp_1, ecp_2, return_contributions = False):
     contributions += [(c[0], -1*c[1]) for c in ecp_2]
     
     contributions = [((fmin, fmin, fmin), 0)]+prune_contributions(contributions)+ \
-                    [((fmax, fmax, fmin), 0)]
+                    [((fmax, fmax, fmax), 0)]
+    
+#     print(contributions)
     
     R_list = sorted(set([c[0][0] for c in contributions]))
     G_list = sorted(set([c[0][1] for c in contributions]))
-    B_list = sorted(set([c[0][1] for c in contributions]))
+    B_list = sorted(set([c[0][2] for c in contributions]))
     
     difference = 0
-    
+        
     for i, r in enumerate(R_list[:-1]):
         delta_r = R_list[i+1] - R_list[i]
         for j, g in enumerate(G_list[:-1]):
             delta_g = G_list[j+1] - G_list[j]
             for z, b in enumerate(B_list[:-1]):
                 delta_b = B_list[z+1] - B_list[z]
-            
-            difference += EC_at_RGB_value(contributions, r, g, b) * delta_r * delta_g * delta_b
+                
+#                 print("r,g,b: ", r,g,b)
+#                 print("deltas: ", delta_r, delta_g, delta_b)
+#                 print("EC at rgb: ", EC_at_RGB_value(contributions, r, g, b))
+#                 print()
+                difference += abs(EC_at_RGB_value(contributions, r, g, b) * delta_r * delta_g * delta_b)
     
     if return_contributions:
         return difference, contributions
     else:
         return difference
+    
+    
+def approximate_difference_RGB_ECP(ecp_1, ecp_2):
+    m_1 = np.zeros((257,257,257))
+    m_2 = np.zeros((257,257,257))
+    
+    for c in ecp_1:
+        m_1[c[0][0]:, c[0][1]:, c[0][2]:] += c[1]
+        
+    for c in ecp_2:
+        m_2[c[0][0]:, c[0][1]:, c[0][2]:] += c[1]
+    
+    difference = np.sum(np.abs(m_1 - m_2))
+    
+    return difference
