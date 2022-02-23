@@ -167,3 +167,63 @@ def plot_ECC(e_list, this_ax=None, with_lines=False, **kwargs):
     this_ax.set_ylabel("Euler Characteristic")
     return this_ax
 
+
+
+
+########
+# DISTANCES
+
+# scan the contribution list (after the merging) and removes the contributions 
+# that are 0
+def prune_contributions(contributions):
+
+    contr_dict = dict()
+
+    for c in contributions:
+        contr_dict[c[0]] = contr_dict.get(c[0], 0) + c[1]
+
+    # remove the contributions that are 0
+    to_del = []
+    for key in contr_dict:
+        if contr_dict[key] == 0:
+            to_del.append(key)
+    for key in to_del:
+        del contr_dict[key]
+        
+    return sorted(list(contr_dict.items()), key = lambda x: x[0])
+
+
+def get_ecc_distance_from_contributions(contr0, contr1):
+    #merge the two contributions list, reversing the signs on the second one
+    contributions = prune_contributions( contr0 + [(c[0], -1*c[1]) for c in contr1] )
+    
+    diff = 0
+    current_ec = contributions[0][1]
+    for i in range(1, len(contributions)):
+        diff += np.abs(current_ec * (contributions[i][0] - contributions[i-1][0]))
+        current_ec += contributions[i][1]
+        
+    return(diff)
+
+
+##########
+# Projection to grid
+
+def find_nearest(value, array):
+    # Find indices where elements should be inserted to maintain order.
+    idx = np.searchsorted(array, value, side="left")
+    if idx > 0 and (idx == len(array) or np.abs(value - array[idx-1]) < np.abs(value - array[idx])):
+        return idx-1
+    else:
+        return idx
+    
+def project_contributions_to_grid(contributions, grid):
+    
+    new_contributions = dict()
+    
+    for f, c in contributions:
+        idx = find_nearest(f, grid)
+        p_f = grid[idx] # projection of f to the grid
+        new_contributions[p_f] = new_contributions.get(p_f, 0) + c
+        
+    return sorted(list(new_contributions.items()), key = lambda x: x[0])
