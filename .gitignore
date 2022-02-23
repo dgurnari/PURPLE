@@ -3,3 +3,10 @@ cubical/data/textures/.DS_Store
 cubical/data/textures/.DS_Store
 cubical/data/textures/.DS_Store
 cubical/data/textures/easy/.DS_Store
+*.ipynb
+*.png
+*.pyc
+cubical/data/.DS_Store
+*.jpg
+alpha/.DS_Store
+cubical/data/.DS_Store
